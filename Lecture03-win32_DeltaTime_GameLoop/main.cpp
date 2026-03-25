@@ -99,9 +99,7 @@ void Render(const GameObject* player, float fps) {
 int main() {
     GameObject player = { 100.0f, 100.0f, 200.0f };
     InputContext input = { 0 };
-    int isRunning = 1;
-
-    // --- [타이머 초기화: auto 미사용] ---
+    
     // high_resolution_clock 내부에 정의된 time_point 타입을 직접 명시함.
     std::chrono::high_resolution_clock::time_point prevTime = std::chrono::high_resolution_clock::now();
 
