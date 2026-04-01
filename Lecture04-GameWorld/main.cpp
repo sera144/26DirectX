@@ -24,17 +24,32 @@
 #include <vector>
 #include <string>
 
+
+// 콘솔의 특정 좌표로 커서를 이동시키는 함수
+void MoveCursor(int x, int y) 
+{
+    // \033[y;xH  (y와 x는 1부터 시작함)
+    printf("\033[%d;%dH", y, x);
+}
+
+// 화면 전체를 지우는 함수 (루프 시작 전 한 번 사용)
+void ClearScreen() 
+{
+    printf("\033[2J");
+}
+
 // [1단계: 컴포넌트 기저 클래스]
 // 모든 기능(이동, 렌더링 등)은 이 클래스를 상속받아야 함.
-class Component {
+class Component 
+{
 public:
     class GameObject* pOwner; // 이 기능이 누구의 것인지 저장
     bool isStarted;           // Start()가 실행되었는지 체크
 
     virtual void Start() = 0;              // 초기화
-    virtual void OnInput() {}              // 입력 (선택사항)
-    virtual void OnUpdate(float dt) = 0;    // 로직 (필수)
-    virtual void OnRender() {}             // 그리기 (선택사항)
+    virtual void Input() {}                // 입력 (선택사항)
+    virtual void Update(float dt) = 0;     // 로직 (필수)
+    virtual void Render() {}               // 그리기 (선택사항)
 
     virtual ~Component() {}
 };
@@ -46,19 +61,22 @@ public:
     std::string name;
     std::vector<Component*> components;
 
-    GameObject(std::string n) {
+    GameObject(std::string n) 
+    {
         name = n;
     }
 
     // 객체가 죽을 때 담고 있던 컴포넌트들도 메모리에서 해제함
     ~GameObject() {
-        for (int i = 0; i < (int)components.size(); i++) {
+        for (int i = 0; i < (int)components.size(); i++) 
+        {
             delete components[i];
         }
     }
 
     // 새로운 기능을 추가하는 함수
-    void AddComponent(Component* pComp) {
+    void AddComponent(Component* pComp) 
+    {
         pComp->pOwner = this;
         pComp->isStarted = false;
         components.push_back(pComp);
@@ -73,14 +91,16 @@ public:
     float x, y, speed;
     bool moveUp, moveDown, moveLeft, moveRight;
 
-    void Start() override {
+    void Start() override 
+    {
         x = 50.0f; y = 50.0f; speed = 150.0f;
         moveUp = moveDown = moveLeft = moveRight = false;
         printf("[%s] PlayerControl 기능 시작!\n", pOwner->name.c_str());
     }
 
     // [입력 단계] 키 상태만 체크함
-    void OnInput() override {
+    void Input() override 
+    {
         moveUp = (GetAsyncKeyState('W') & 0x8000);
         moveDown = (GetAsyncKeyState('S') & 0x8000);
         moveLeft = (GetAsyncKeyState('A') & 0x8000);
@@ -88,7 +108,8 @@ public:
     }
 
     // [업데이트 단계] 체크된 키 상태로 좌표만 계산함
-    void OnUpdate(float dt) override {
+    void Update(float dt) override 
+    {
         if (moveUp)    y -= speed * dt;
         if (moveDown)  y += speed * dt;
         if (moveLeft)  x -= speed * dt;
@@ -96,48 +117,51 @@ public:
     }
 
     // [렌더링 단계] 계산된 좌표를 화면에 그림
-    void OnRender() override {
+    void Render() override 
+    {
         // 실제 엔진이라면 여기서 DirectX Draw를 부름
         // 지금은 좌표 시각화로 대체
+        
+        if (x < 10.0f)
+            x = 10.0f;
+        if (y < 45.0f)
+            y = 45.0f;
+
         int py = (int)(y / 15.0f);
         int px = (int)(x / 10.0f);
-        for (int i = 0; i < py; i++) printf("\n");
-        for (int i = 0; i < px; i++) printf(" ");
+
+        
+        MoveCursor(px, py);
         printf("★");
     }
 };
 
 // 기능 2: 시스템 정보 출력 (위치 정보 없음)
-class InfoDisplay : public Component {
+class InfoDisplay : public Component 
+{
 public:
     float totalTime;
 
-    void Start() override {
+    void Start() override 
+    {
         totalTime = 0.0f;
         printf("[%s] InfoDisplay 기능 시작!\n", pOwner->name.c_str());
     }
 
-    void OnUpdate(float dt) override {
+    void Update(float dt) override 
+    {
         totalTime += dt;
     }
 
-    void OnRender() override {
+    void Render() override {
         // 화면 최상단에 정보 출력
+        MoveCursor(0, 0);
         printf("System Time: %.2f sec\n", totalTime);
         printf("Control: W, A, S, D | Exit: ESC\n");
     }
 };
 
-// 콘솔의 특정 좌표로 커서를 이동시키는 함수
-void MoveCursor(int x, int y) {
-    // \033[y;xH  (y와 x는 1부터 시작함)
-    printf("\033[%d;%dH", y, x);
-}
 
-// 화면 전체를 지우는 함수 (루프 시작 전 한 번 사용)
-void ClearScreen() {
-    printf("\033[2J");
-}
 
 // --- [4단계: 메인 엔진 루프] ---
 int main() {
@@ -188,7 +212,7 @@ int main() {
         // B. 입력 단계 (Input Phase)
         for (int i = 0; i < (int)gameWorld.size(); i++) {
             for (int j = 0; j < (int)gameWorld[i]->components.size(); j++) {
-                gameWorld[i]->components[j]->OnInput();
+                gameWorld[i]->components[j]->Input();
             }
         }
 
@@ -197,7 +221,7 @@ int main() {
         {
             for (int j = 0; j < (int)gameWorld[i]->components.size(); j++) 
             {
-                gameWorld[i]->components[j]->OnUpdate(dt);
+                gameWorld[i]->components[j]->Update(dt);
             }
         }
 
@@ -205,7 +229,7 @@ int main() {
         system("cls"); // 화면 지우기
         for (int i = 0; i < (int)gameWorld.size(); i++) {
             for (int j = 0; j < (int)gameWorld[i]->components.size(); j++) {
-                gameWorld[i]->components[j]->OnRender();
+                gameWorld[i]->components[j]->Render();
             }
         }
 
