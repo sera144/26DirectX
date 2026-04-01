@@ -24,18 +24,11 @@
 #include <vector>
 #include <string>
 
-
 // 콘솔의 특정 좌표로 커서를 이동시키는 함수
 void MoveCursor(int x, int y) 
 {
     // \033[y;xH  (y와 x는 1부터 시작함)
     printf("\033[%d;%dH", y, x);
-}
-
-// 화면 전체를 지우는 함수 (루프 시작 전 한 번 사용)
-void ClearScreen() 
-{
-    printf("\033[2J");
 }
 
 // [1단계: 컴포넌트 기저 클래스]
@@ -166,39 +159,30 @@ public:
 class GameLoop
 {
 public:
-    std::chrono::high_resolution_clock::time_point prevTime;
+    bool isRunning;
     std::vector<GameObject*> gameWorld;
-    int isRunning;
-    float dt;
+    std::chrono::high_resolution_clock::time_point prevTime;
+    float deltaTime;   //delta time;
 
     //초기화
     void Initialize()
     {
         //초기화시 동작준비됨
-        isRunning = 1;
+        isRunning = true;
+
+        gameWorld.clear();
 
         // 시간 측정 준비
         prevTime = std::chrono::high_resolution_clock::now();
-        dt = 0;
+        deltaTime = 0.0f;
 
-        // 시스템 정보 객체 조립
-        GameObject* sysInfo = new GameObject("SystemManager");
-        InfoDisplay* pInfo = new InfoDisplay();
-        sysInfo->AddComponent(pInfo);
-        gameWorld.push_back(sysInfo);
-
-        // 플레이어 객체 조립
-        GameObject* player = new GameObject("Player1");
-        PlayerControl* pControl = new PlayerControl();
-        player->AddComponent(pControl);
-        gameWorld.push_back(player);
-    }
-
-    
+        
+    }    
 
     void Input()
     {
-        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) isRunning = 0;
+        // esc 누르면 종료
+        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) isRunning = false;
 
         // B. 입력 단계 (Input Phase)
         for (int i = 0; i < (int)gameWorld.size(); i++)
@@ -231,7 +215,7 @@ public:
         {
             for (int j = 0; j < (int)gameWorld[i]->components.size(); j++)
             {
-                gameWorld[i]->components[j]->Update(dt);
+                gameWorld[i]->components[j]->Update(deltaTime);
             }
         }
     }
@@ -239,7 +223,7 @@ public:
     void Render()
     {
         // E. 렌더링 단계 (Render Phase)
-        system("cls"); // 화면 지우기
+        system("cls");
         for (int i = 0; i < (int)gameWorld.size(); i++)
         {
             for (int j = 0; j < (int)gameWorld[i]->components.size(); j++)
@@ -257,7 +241,7 @@ public:
             // A. 시간 관리 (DeltaTime 계산)
             std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
             std::chrono::duration<float> elapsed = currentTime - prevTime;
-            dt = elapsed.count();
+            deltaTime = elapsed.count();
             prevTime = currentTime;
 
             Input();
@@ -284,14 +268,25 @@ public:
 
 };
 
-
-
-
 // --- [4단계: 메인 엔진 루프] ---
 int main() 
 {
     GameLoop gLoop;
+
     gLoop.Initialize();
+
+    // 시스템 정보 객체 조립
+    GameObject* sysInfo = new GameObject("SystemManager");
+    InfoDisplay* pInfo = new InfoDisplay();
+    sysInfo->AddComponent(pInfo);
+    gLoop.gameWorld.push_back(sysInfo);
+
+    // 플레이어 객체 조립
+    GameObject* player = new GameObject("Player1");
+    PlayerControl* pControl = new PlayerControl();
+    player->AddComponent(pControl);
+    gLoop.gameWorld.push_back(player);
+
     gLoop.Run();
 
     return 0;
