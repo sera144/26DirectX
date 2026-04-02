@@ -254,7 +254,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         };
 
         // [2. 출력/전달 데이터 구조체]
-        // Vertex Shader가 계산을 마치고 Pixel Shader에게 넘겨줄 바구니임.
+        // Vertex Shader가 계산을 마치고 Pixel Shader에게 넘겨줄 구조체임.
         struct PS_INPUT
         {
             // SV_POSITION: System Value의 약자. 

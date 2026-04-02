@@ -9,7 +9,8 @@
 #pragma comment(lib, "d3dcompiler.lib")
 
 // [비디오 설정 관리 구조체]
-struct VideoConfig {
+struct VideoConfig 
+{
     int Width = 800;
     int Height = 600;
     bool IsFullscreen = false;
@@ -27,17 +28,20 @@ ID3D11PixelShader* g_pPixelShader = nullptr;
 ID3D11InputLayout* g_pInputLayout = nullptr;
 ID3D11Buffer* g_pVertexBuffer = nullptr;
 
-struct Vertex {
+struct Vertex 
+{
     float x, y, z;
     float r, g, b, a;
 };
 
 // --- [해상도 및 리소스 재구성 함수] ---
-void RebuildVideoResources(HWND hWnd) {
+void RebuildVideoResources(HWND hWnd) 
+{
     if (!g_pSwapChain) return;
 
     // 1. 기존 렌더 타겟 뷰 해제 (안 하면 ResizeBuffers 실패함)
-    if (g_pRenderTargetView) {
+    if (g_pRenderTargetView) 
+    {
         g_pRenderTargetView->Release();
         g_pRenderTargetView = nullptr;
     }
@@ -48,11 +52,17 @@ void RebuildVideoResources(HWND hWnd) {
     // 3. 새 백버퍼로부터 렌더 타겟 뷰 다시 생성
     ID3D11Texture2D* pBackBuffer = nullptr;
     g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBackBuffer);
+    if (pBackBuffer == nullptr)
+    {
+        printf("GETBUFFER ERROR\n");
+        return;
+    }
     g_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &g_pRenderTargetView);
     pBackBuffer->Release();
 
     // 4. 윈도우 창 크기 실제 조정 (전체화면이 아닐 때만)
-    if (!g_Config.IsFullscreen) {
+    if (!g_Config.IsFullscreen) 
+    {
         RECT rc = { 0, 0, g_Config.Width, g_Config.Height };
         AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
         SetWindowPos(hWnd, nullptr, 0, 0, rc.right - rc.left, rc.bottom - rc.top, SWP_NOMOVE | SWP_NOZORDER);
@@ -62,12 +72,17 @@ void RebuildVideoResources(HWND hWnd) {
     printf("[Video] Changed: %d x %d\n", g_Config.Width, g_Config.Height);
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    if (message == WM_DESTROY) { PostQuitMessage(0); return 0; }
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
+{
+    if (message == WM_DESTROY) 
+    {
+        PostQuitMessage(0); return 0; 
+    }
     return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) 
+{
     // 1. 윈도우 클래스 등록 및 생성
     WNDCLASSEXW wcex = { sizeof(WNDCLASSEX) };
     wcex.lpfnWndProc = WndProc;

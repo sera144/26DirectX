@@ -36,8 +36,8 @@ void MoveCursor(int x, int y)
 class Component 
 {
 public:
-    class GameObject* pOwner; // 이 기능이 누구의 것인지 저장
-    bool isStarted;           // Start()가 실행되었는지 체크
+    class GameObject* pOwner = nullptr; // 이 기능이 누구의 것인지 저장
+    bool isStarted = 0;           // Start()가 실행되었는지 체크
 
     virtual void Start() = 0;              // 초기화
     virtual void Input() {}                // 입력 (선택사항)
@@ -133,7 +133,7 @@ public:
 class InfoDisplay : public Component 
 {
 public:
-    float totalTime;
+    float totalTime = 0.0f;
 
     void Start() override 
     {
