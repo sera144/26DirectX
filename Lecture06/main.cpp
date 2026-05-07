@@ -1,9 +1,9 @@
 /*
- * [포인트: 셰이더 컴파일의 2가지 길]
+ * [포인트: 셰이더 컴파일의 4가지 길]
  * 1. CompileFromString: 코드 내부에 텍스트로 존재 (빠른 테스트용)
  * 2. CompileFromFile: 외부 파일(.hlsl)에서 읽기 (실무 표준)
- *  - Separate Files: VS와 PS를 완전히 다른 파일로 관리 (대규모 프로젝트)
- *  - Unified FX: 하나의 파일 안에 VS/PS 통합 관리
+ * 3. Separate Files: VS와 PS를 완전히 다른 파일로 관리 (대규모 프로젝트)
+ * 4. Unified FX: 하나의 파일 안에 VS/PS 통합 관리
  * * ※ 주의: CreateVertexShader/CreatePixelShader를 호출한 뒤에는
  * 컴파일된 중간 데이터(Blob)를 반드시 Release() 해야 메모리 누수가 없음!
 
@@ -24,7 +24,7 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
-   // --- [전역 객체] ---
+  // --- [전역 객체] ---
 ID3D11Device* g_pd3dDevice = nullptr;
 ID3D11DeviceContext* g_pImmediateContext = nullptr;
 IDXGISwapChain* g_pSwapChain = nullptr;
@@ -110,7 +110,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow) {
     // 방식 3: 외부 통합 파일 (.fx) - 파일이 있어야 작동함
     CompileShader(L"Basic.fx", true, "VS", "vs_4_0", &vsBlob);
     CompileShader(L"Basic.fx", true, "PS", "ps_4_0", &psBlob);
-    
+
     g_pd3dDevice->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &g_pVertexShader);
     g_pd3dDevice->CreatePixelShader(psBlob->GetBufferPointer(), psBlob->GetBufferSize(), nullptr, &g_pPixelShader);
 
@@ -161,4 +161,4 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE, LPSTR, int nCmdShow) {
     if (g_pd3dDevice) g_pd3dDevice->Release();
 
     return 0;
-}
+} 
